@@ -3,25 +3,33 @@ version: '2'
 services:
 
   jenkins:
-    image: jenkins/jenkins:lts
+    image: h1kkan/jenkins-docker:lts 
+    container_name: jenkins
+    restart: unless-stopped 
     volumes:
-      - './jenkins_home:/var/jenkins_home'
+      - "./jenkins_home:/var/jenkins_home"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     ports:
       - "8080"
 
   nginx:
-    image: nginx
+    image: nginx:stable-alpine
+    container_name: nginx
+    restart: unless-stopped
     links:
       - jenkins
     volumes:
-      - "./etc/nginx/conf.d/:/etc/nginx/conf.d/"
+      - "./nginx/conf.d/:/etc/nginx/conf.d/"
     environment:
       VIRTUAL_HOST: example.com
+      HTTPS_METHOD: redirect
       LETSENCRYPT_HOST: example.com
       LETSENCRYPT_EMAIL: youremail@example.com
 
   nginx-proxy:
-    image: jwilder/nginx-proxy
+    image: jwilder/nginx-proxy:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
@@ -37,4 +45,3 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     volumes_from:
       - "nginx-proxy"
-
